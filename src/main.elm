@@ -4,8 +4,8 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Http
 import Json.Decode as Decode
-import FormatNumber exposing (format)
-import FormatNumber.Locales exposing (usLocale)
+import Parsers exposing (..)
+import Components
 
 
 main =
@@ -66,53 +66,9 @@ update msg model =
 view : Model -> Html msg
 view model =
     div []
-        [ loadingIndicator model
-        , mainStatsTable model
-        , typeStats model
-        ]
-
-
-loadingIndicator : Model -> Html msg
-loadingIndicator model =
-    h2 [ id "location" ]
-        [ text model.areaName ]
-
-
-mainStatsTable : Model -> Html msg
-mainStatsTable model =
-    table [ class "main-stats" ]
-        [ tr []
-            [ td [] [ img [ src "img/pound.svg" ] [] ]
-            , td [] [ text "Average price" ]
-            , td [ class "value" ] [ text model.averagePrice ]
-            ]
-        , tr []
-            [ td [] [ img [ src "img/houses.svg" ] [] ]
-            , td [] [ text "Number of transactions" ]
-            , td [ class "value" ] [ text model.numberOfTransactions ]
-            ]
-        ]
-
-
-typeStats : Model -> Html msg
-typeStats model =
-    table [ class "type-stats" ]
-        [ tr []
-            [ td [] [ text "Average price of detached house" ]
-            , td [ class "value" ] [ text model.detachedAverage ]
-            ]
-        , tr []
-            [ td [] [ text "Average price of flat" ]
-            , td [ class "value" ] [ text model.flatAverage ]
-            ]
-        , tr []
-            [ td [] [ text "Average price of semi-detached house" ]
-            , td [ class "value" ] [ text model.semiDetachedAverage ]
-            ]
-        , tr []
-            [ td [] [ text "Average price of terraced house" ]
-            , td [ class "value" ] [ text model.terracedAverage ]
-            ]
+        [ Components.pageTitle model.areaName
+        , Components.mainStatsTable model.averagePrice model.numberOfTransactions
+        , Components.typeStatsTable model.detachedAverage model.flatAverage model.semiDetachedAverage model.terracedAverage
         ]
 
 
@@ -152,34 +108,18 @@ decodePricesData =
 
 parseToModel : String -> String -> Int -> Int -> Maybe Int -> Maybe Int -> Maybe Int -> Maybe Int -> Model
 parseToModel areaName outcode averagePrice numberOfTransactions detachedAverage semiDetachedAverage flatAverage terracedAverage =
-    Model
-        (parseTitle areaName outcode)
-        (parseToCurrency averagePrice)
-        (toString numberOfTransactions)
-        (parseOptionalInt detachedAverage)
-        (parseOptionalInt semiDetachedAverage)
-        (parseOptionalInt flatAverage)
-        (parseOptionalInt terracedAverage)
-
-
-parseOptionalInt : Maybe Int -> String
-parseOptionalInt optionalInt =
-    case optionalInt of
-        Just int ->
-            parseToCurrency int
-
-        Nothing ->
+    let
+        noDataLabel =
             "No data"
-
-
-parseToCurrency : Int -> String
-parseToCurrency int =
-    "£" ++ format { usLocale | decimals = 0 } (toFloat int)
-
-
-parseTitle : String -> String -> String
-parseTitle areaName outcode =
-    areaName ++ " (" ++ outcode ++ ")"
+    in
+        Model
+            (parseTitle areaName outcode)
+            (parseToCurrency averagePrice)
+            (toString numberOfTransactions)
+            (parseOptionalInt parseToCurrency detachedAverage noDataLabel)
+            (parseOptionalInt parseToCurrency semiDetachedAverage noDataLabel)
+            (parseOptionalInt parseToCurrency flatAverage noDataLabel)
+            (parseOptionalInt parseToCurrency terracedAverage noDataLabel)
 
 
 

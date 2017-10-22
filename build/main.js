@@ -9235,59 +9235,101 @@ var _elm_lang$http$Http$StringPart = F2(
 	});
 var _elm_lang$http$Http$stringPart = _elm_lang$http$Http$StringPart;
 
-var _user$project$NearbyHousePrices$subscriptions = function (model) {
-	return _elm_lang$core$Platform_Sub$none;
-};
-var _user$project$NearbyHousePrices$parseTitle = F2(
-	function (areaName, outcode) {
+var _user$project$Components$typeStatsRow = F2(
+	function (propertyType, value) {
 		return A2(
-			_elm_lang$core$Basics_ops['++'],
-			areaName,
-			A2(
-				_elm_lang$core$Basics_ops['++'],
-				' (',
-				A2(_elm_lang$core$Basics_ops['++'], outcode, ')')));
+			_elm_lang$html$Html$tr,
+			{ctor: '[]'},
+			{
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$td,
+					{ctor: '[]'},
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html$text(
+							A2(_elm_lang$core$Basics_ops['++'], 'Average price of ', propertyType)),
+						_1: {ctor: '[]'}
+					}),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$td,
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$class('value'),
+							_1: {ctor: '[]'}
+						},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text(value),
+							_1: {ctor: '[]'}
+						}),
+					_1: {ctor: '[]'}
+				}
+			});
 	});
-var _user$project$NearbyHousePrices$parseToCurrency = function ($int) {
-	return A2(
-		_elm_lang$core$Basics_ops['++'],
-		'£',
-		A2(
-			_cuducos$elm_format_number$FormatNumber$format,
-			_elm_lang$core$Native_Utils.update(
-				_cuducos$elm_format_number$FormatNumber_Locales$usLocale,
-				{decimals: 0}),
-			_elm_lang$core$Basics$toFloat($int)));
-};
-var _user$project$NearbyHousePrices$parseOptionalInt = function (optionalInt) {
-	var _p0 = optionalInt;
-	if (_p0.ctor === 'Just') {
-		return _user$project$NearbyHousePrices$parseToCurrency(_p0._0);
-	} else {
-		return 'No data';
-	}
-};
-var _user$project$NearbyHousePrices$typeStats = function (model) {
-	return A2(
-		_elm_lang$html$Html$table,
-		{
-			ctor: '::',
-			_0: _elm_lang$html$Html_Attributes$class('type-stats'),
-			_1: {ctor: '[]'}
-		},
-		{
-			ctor: '::',
-			_0: A2(
-				_elm_lang$html$Html$tr,
-				{ctor: '[]'},
-				{
+var _user$project$Components$typeStatsTable = F4(
+	function (detachedAverage, flatAverage, semiDetachedAverage, terracedAverage) {
+		return A2(
+			_elm_lang$html$Html$table,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$class('type-stats'),
+				_1: {ctor: '[]'}
+			},
+			{
+				ctor: '::',
+				_0: A2(_user$project$Components$typeStatsRow, 'detached house', detachedAverage),
+				_1: {
+					ctor: '::',
+					_0: A2(_user$project$Components$typeStatsRow, 'flat', flatAverage),
+					_1: {
+						ctor: '::',
+						_0: A2(_user$project$Components$typeStatsRow, 'semi-detached house', semiDetachedAverage),
+						_1: {
+							ctor: '::',
+							_0: A2(_user$project$Components$typeStatsRow, 'terraced house', terracedAverage),
+							_1: {ctor: '[]'}
+						}
+					}
+				}
+			});
+	});
+var _user$project$Components$mainStatsRow = F3(
+	function (imgName, label, value) {
+		return A2(
+			_elm_lang$html$Html$tr,
+			{ctor: '[]'},
+			{
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$td,
+					{ctor: '[]'},
+					{
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$img,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$src(
+									A2(
+										_elm_lang$core$Basics_ops['++'],
+										'img/',
+										A2(_elm_lang$core$Basics_ops['++'], imgName, '.svg'))),
+								_1: {ctor: '[]'}
+							},
+							{ctor: '[]'}),
+						_1: {ctor: '[]'}
+					}),
+				_1: {
 					ctor: '::',
 					_0: A2(
 						_elm_lang$html$Html$td,
 						{ctor: '[]'},
 						{
 							ctor: '::',
-							_0: _elm_lang$html$Html$text('Average price of detached house'),
+							_0: _elm_lang$html$Html$text(label),
 							_1: {ctor: '[]'}
 						}),
 					_1: {
@@ -9301,227 +9343,34 @@ var _user$project$NearbyHousePrices$typeStats = function (model) {
 							},
 							{
 								ctor: '::',
-								_0: _elm_lang$html$Html$text(model.detachedAverage),
+								_0: _elm_lang$html$Html$text(value),
 								_1: {ctor: '[]'}
-							}),
-						_1: {ctor: '[]'}
-					}
-				}),
-			_1: {
-				ctor: '::',
-				_0: A2(
-					_elm_lang$html$Html$tr,
-					{ctor: '[]'},
-					{
-						ctor: '::',
-						_0: A2(
-							_elm_lang$html$Html$td,
-							{ctor: '[]'},
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html$text('Average price of flat'),
-								_1: {ctor: '[]'}
-							}),
-						_1: {
-							ctor: '::',
-							_0: A2(
-								_elm_lang$html$Html$td,
-								{
-									ctor: '::',
-									_0: _elm_lang$html$Html_Attributes$class('value'),
-									_1: {ctor: '[]'}
-								},
-								{
-									ctor: '::',
-									_0: _elm_lang$html$Html$text(model.flatAverage),
-									_1: {ctor: '[]'}
-								}),
-							_1: {ctor: '[]'}
-						}
-					}),
-				_1: {
-					ctor: '::',
-					_0: A2(
-						_elm_lang$html$Html$tr,
-						{ctor: '[]'},
-						{
-							ctor: '::',
-							_0: A2(
-								_elm_lang$html$Html$td,
-								{ctor: '[]'},
-								{
-									ctor: '::',
-									_0: _elm_lang$html$Html$text('Average price of semi-detached house'),
-									_1: {ctor: '[]'}
-								}),
-							_1: {
-								ctor: '::',
-								_0: A2(
-									_elm_lang$html$Html$td,
-									{
-										ctor: '::',
-										_0: _elm_lang$html$Html_Attributes$class('value'),
-										_1: {ctor: '[]'}
-									},
-									{
-										ctor: '::',
-										_0: _elm_lang$html$Html$text(model.semiDetachedAverage),
-										_1: {ctor: '[]'}
-									}),
-								_1: {ctor: '[]'}
-							}
-						}),
-					_1: {
-						ctor: '::',
-						_0: A2(
-							_elm_lang$html$Html$tr,
-							{ctor: '[]'},
-							{
-								ctor: '::',
-								_0: A2(
-									_elm_lang$html$Html$td,
-									{ctor: '[]'},
-									{
-										ctor: '::',
-										_0: _elm_lang$html$Html$text('Average price of terraced house'),
-										_1: {ctor: '[]'}
-									}),
-								_1: {
-									ctor: '::',
-									_0: A2(
-										_elm_lang$html$Html$td,
-										{
-											ctor: '::',
-											_0: _elm_lang$html$Html_Attributes$class('value'),
-											_1: {ctor: '[]'}
-										},
-										{
-											ctor: '::',
-											_0: _elm_lang$html$Html$text(model.terracedAverage),
-											_1: {ctor: '[]'}
-										}),
-									_1: {ctor: '[]'}
-								}
 							}),
 						_1: {ctor: '[]'}
 					}
 				}
-			}
-		});
-};
-var _user$project$NearbyHousePrices$mainStatsTable = function (model) {
-	return A2(
-		_elm_lang$html$Html$table,
-		{
-			ctor: '::',
-			_0: _elm_lang$html$Html_Attributes$class('main-stats'),
-			_1: {ctor: '[]'}
-		},
-		{
-			ctor: '::',
-			_0: A2(
-				_elm_lang$html$Html$tr,
-				{ctor: '[]'},
-				{
-					ctor: '::',
-					_0: A2(
-						_elm_lang$html$Html$td,
-						{ctor: '[]'},
-						{
-							ctor: '::',
-							_0: A2(
-								_elm_lang$html$Html$img,
-								{
-									ctor: '::',
-									_0: _elm_lang$html$Html_Attributes$src('img/pound.svg'),
-									_1: {ctor: '[]'}
-								},
-								{ctor: '[]'}),
-							_1: {ctor: '[]'}
-						}),
-					_1: {
-						ctor: '::',
-						_0: A2(
-							_elm_lang$html$Html$td,
-							{ctor: '[]'},
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html$text('Average price'),
-								_1: {ctor: '[]'}
-							}),
-						_1: {
-							ctor: '::',
-							_0: A2(
-								_elm_lang$html$Html$td,
-								{
-									ctor: '::',
-									_0: _elm_lang$html$Html_Attributes$class('value'),
-									_1: {ctor: '[]'}
-								},
-								{
-									ctor: '::',
-									_0: _elm_lang$html$Html$text(model.averagePrice),
-									_1: {ctor: '[]'}
-								}),
-							_1: {ctor: '[]'}
-						}
-					}
-				}),
-			_1: {
+			});
+	});
+var _user$project$Components$mainStatsTable = F2(
+	function (averagePrice, numberOfTransactions) {
+		return A2(
+			_elm_lang$html$Html$table,
+			{
 				ctor: '::',
-				_0: A2(
-					_elm_lang$html$Html$tr,
-					{ctor: '[]'},
-					{
-						ctor: '::',
-						_0: A2(
-							_elm_lang$html$Html$td,
-							{ctor: '[]'},
-							{
-								ctor: '::',
-								_0: A2(
-									_elm_lang$html$Html$img,
-									{
-										ctor: '::',
-										_0: _elm_lang$html$Html_Attributes$src('img/houses.svg'),
-										_1: {ctor: '[]'}
-									},
-									{ctor: '[]'}),
-								_1: {ctor: '[]'}
-							}),
-						_1: {
-							ctor: '::',
-							_0: A2(
-								_elm_lang$html$Html$td,
-								{ctor: '[]'},
-								{
-									ctor: '::',
-									_0: _elm_lang$html$Html$text('Number of transactions'),
-									_1: {ctor: '[]'}
-								}),
-							_1: {
-								ctor: '::',
-								_0: A2(
-									_elm_lang$html$Html$td,
-									{
-										ctor: '::',
-										_0: _elm_lang$html$Html_Attributes$class('value'),
-										_1: {ctor: '[]'}
-									},
-									{
-										ctor: '::',
-										_0: _elm_lang$html$Html$text(model.numberOfTransactions),
-										_1: {ctor: '[]'}
-									}),
-								_1: {ctor: '[]'}
-							}
-						}
-					}),
+				_0: _elm_lang$html$Html_Attributes$class('main-stats'),
 				_1: {ctor: '[]'}
-			}
-		});
-};
-var _user$project$NearbyHousePrices$loadingIndicator = function (model) {
+			},
+			{
+				ctor: '::',
+				_0: A3(_user$project$Components$mainStatsRow, 'pound', 'Average price', averagePrice),
+				_1: {
+					ctor: '::',
+					_0: A3(_user$project$Components$mainStatsRow, 'houses', 'Number of transactions', numberOfTransactions),
+					_1: {ctor: '[]'}
+				}
+			});
+	});
+var _user$project$Components$pageTitle = function (title) {
 	return A2(
 		_elm_lang$html$Html$h2,
 		{
@@ -9531,9 +9380,44 @@ var _user$project$NearbyHousePrices$loadingIndicator = function (model) {
 		},
 		{
 			ctor: '::',
-			_0: _elm_lang$html$Html$text(model.areaName),
+			_0: _elm_lang$html$Html$text(title),
 			_1: {ctor: '[]'}
 		});
+};
+
+var _user$project$Parsers$parseTitle = F2(
+	function (areaName, outcode) {
+		return A2(
+			_elm_lang$core$Basics_ops['++'],
+			areaName,
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				' (',
+				A2(_elm_lang$core$Basics_ops['++'], outcode, ')')));
+	});
+var _user$project$Parsers$parseToCurrency = function ($int) {
+	return A2(
+		_elm_lang$core$Basics_ops['++'],
+		'£',
+		A2(
+			_cuducos$elm_format_number$FormatNumber$format,
+			_elm_lang$core$Native_Utils.update(
+				_cuducos$elm_format_number$FormatNumber_Locales$usLocale,
+				{decimals: 0}),
+			_elm_lang$core$Basics$toFloat($int)));
+};
+var _user$project$Parsers$parseOptionalInt = F3(
+	function (intParser, optionalInt, $default) {
+		var _p0 = optionalInt;
+		if (_p0.ctor === 'Just') {
+			return intParser(_p0._0);
+		} else {
+			return $default;
+		}
+	});
+
+var _user$project$NearbyHousePrices$subscriptions = function (model) {
+	return _elm_lang$core$Platform_Sub$none;
 };
 var _user$project$NearbyHousePrices$view = function (model) {
 	return A2(
@@ -9541,13 +9425,13 @@ var _user$project$NearbyHousePrices$view = function (model) {
 		{ctor: '[]'},
 		{
 			ctor: '::',
-			_0: _user$project$NearbyHousePrices$loadingIndicator(model),
+			_0: _user$project$Components$pageTitle(model.areaName),
 			_1: {
 				ctor: '::',
-				_0: _user$project$NearbyHousePrices$mainStatsTable(model),
+				_0: A2(_user$project$Components$mainStatsTable, model.averagePrice, model.numberOfTransactions),
 				_1: {
 					ctor: '::',
-					_0: _user$project$NearbyHousePrices$typeStats(model),
+					_0: A4(_user$project$Components$typeStatsTable, model.detachedAverage, model.flatAverage, model.semiDetachedAverage, model.terracedAverage),
 					_1: {ctor: '[]'}
 				}
 			}
@@ -9555,9 +9439,9 @@ var _user$project$NearbyHousePrices$view = function (model) {
 };
 var _user$project$NearbyHousePrices$update = F2(
 	function (msg, model) {
-		var _p1 = msg;
-		if (_p1._0.ctor === 'Ok') {
-			return {ctor: '_Tuple2', _0: _p1._0._0, _1: _elm_lang$core$Platform_Cmd$none};
+		var _p0 = msg;
+		if (_p0._0.ctor === 'Ok') {
+			return {ctor: '_Tuple2', _0: _p0._0._0, _1: _elm_lang$core$Platform_Cmd$none};
 		} else {
 			return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
 		}
@@ -9569,15 +9453,16 @@ var _user$project$NearbyHousePrices$Model = F7(
 var _user$project$NearbyHousePrices$loadingModel = A7(_user$project$NearbyHousePrices$Model, 'Waiting for location...', 'Loading', 'Loading', 'Loading', 'Loading', 'Loading', 'Loading');
 var _user$project$NearbyHousePrices$parseToModel = F8(
 	function (areaName, outcode, averagePrice, numberOfTransactions, detachedAverage, semiDetachedAverage, flatAverage, terracedAverage) {
+		var noDataLabel = 'No data';
 		return A7(
 			_user$project$NearbyHousePrices$Model,
-			A2(_user$project$NearbyHousePrices$parseTitle, areaName, outcode),
-			_user$project$NearbyHousePrices$parseToCurrency(averagePrice),
+			A2(_user$project$Parsers$parseTitle, areaName, outcode),
+			_user$project$Parsers$parseToCurrency(averagePrice),
 			_elm_lang$core$Basics$toString(numberOfTransactions),
-			_user$project$NearbyHousePrices$parseOptionalInt(detachedAverage),
-			_user$project$NearbyHousePrices$parseOptionalInt(semiDetachedAverage),
-			_user$project$NearbyHousePrices$parseOptionalInt(flatAverage),
-			_user$project$NearbyHousePrices$parseOptionalInt(terracedAverage));
+			A3(_user$project$Parsers$parseOptionalInt, _user$project$Parsers$parseToCurrency, detachedAverage, noDataLabel),
+			A3(_user$project$Parsers$parseOptionalInt, _user$project$Parsers$parseToCurrency, semiDetachedAverage, noDataLabel),
+			A3(_user$project$Parsers$parseOptionalInt, _user$project$Parsers$parseToCurrency, flatAverage, noDataLabel),
+			A3(_user$project$Parsers$parseOptionalInt, _user$project$Parsers$parseToCurrency, terracedAverage, noDataLabel));
 	});
 var _user$project$NearbyHousePrices$decodePricesData = A9(
 	_elm_lang$core$Json_Decode$map8,
