@@ -6,6 +6,8 @@ import Http
 import Json.Decode as Decode
 import Parsers exposing (..)
 import Components
+import Geolocation
+import Task
 
 
 main =
@@ -38,7 +40,7 @@ loadingModel =
 
 
 init outcode =
-    ( loadingModel, getPrices outcode )
+    ( loadingModel, getLocation )
 
 
 
@@ -46,16 +48,23 @@ init outcode =
 
 
 type Msg
-    = ReceivedPrices (Result Http.Error Model)
+    = PricesReceived (Result Http.Error Model)
+    | LocationUpdated (Result Geolocation.Error Geolocation.Location)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        ReceivedPrices (Ok newModel) ->
+        PricesReceived (Ok newModel) ->
             ( newModel, Cmd.none )
 
-        ReceivedPrices (Err _) ->
+        PricesReceived (Err _) ->
+            ( model, Cmd.none )
+
+        LocationUpdated (Ok location) ->
+            ( model, getPrices location )
+
+        LocationUpdated (Err _) ->
             ( model, Cmd.none )
 
 
@@ -76,16 +85,22 @@ view model =
 -- HTTP
 
 
-getPrices : String -> Cmd Msg
-getPrices outcode =
+getPrices : Geolocation.Location -> Cmd Msg
+getPrices location =
     let
+        lat =
+            toString location.latitude
+
+        long =
+            toString location.longitude
+
         url =
-            "https://mdowds.com/nearbyhouseprices/api/prices/outcode/" ++ outcode
+            "https://mdowds.com/nearbyhouseprices/api/prices/position?lat=" ++ lat ++ "&long=" ++ long
 
         request =
             Http.get url decodePricesData
     in
-        Http.send ReceivedPrices request
+        Http.send PricesReceived request
 
 
 decodePricesData : Decode.Decoder Model
@@ -129,3 +144,8 @@ parseToModel areaName outcode averagePrice numberOfTransactions detachedAverage 
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.none
+
+
+getLocation : Cmd Msg
+getLocation =
+    Task.attempt LocationUpdated Geolocation.now

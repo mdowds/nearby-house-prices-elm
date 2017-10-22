@@ -6486,6 +6486,241 @@ var _elm_lang$core$Json_Decode$bool = _elm_lang$core$Native_Json.decodePrimitive
 var _elm_lang$core$Json_Decode$string = _elm_lang$core$Native_Json.decodePrimitive('string');
 var _elm_lang$core$Json_Decode$Decoder = {ctor: 'Decoder'};
 
+var _elm_lang$core$Process$kill = _elm_lang$core$Native_Scheduler.kill;
+var _elm_lang$core$Process$sleep = _elm_lang$core$Native_Scheduler.sleep;
+var _elm_lang$core$Process$spawn = _elm_lang$core$Native_Scheduler.spawn;
+
+//import Maybe, Native.Scheduler //
+
+var _elm_lang$geolocation$Native_Geolocation = function() {
+
+
+// LOCATIONS
+
+function toLocation(rawPosition)
+{
+	var coords = rawPosition.coords;
+
+	var rawAltitude = coords.altitude;
+	var rawAccuracy = coords.altitudeAccuracy;
+	var altitude =
+		(rawAltitude === null || rawAccuracy === null)
+			? _elm_lang$core$Maybe$Nothing
+			: _elm_lang$core$Maybe$Just({ value: rawAltitude, accuracy: rawAccuracy });
+
+	var heading = coords.heading;
+	var speed = coords.speed;
+	var movement =
+		(heading === null || speed === null)
+			? _elm_lang$core$Maybe$Nothing
+			: _elm_lang$core$Maybe$Just(
+				speed === 0
+					? { ctor: 'Static' }
+					: { ctor: 'Moving', _0: { speed: speed, degreesFromNorth: heading } }
+			);
+
+	return {
+		latitude: coords.latitude,
+		longitude: coords.longitude,
+		accuracy: coords.accuracy,
+		altitude: altitude,
+		movement: movement,
+		timestamp: rawPosition.timestamp
+	};
+}
+
+
+// ERRORS
+
+var errorTypes = ['PermissionDenied', 'PositionUnavailable', 'Timeout'];
+
+function toError(rawError)
+{
+	return {
+		ctor: errorTypes[rawError.code - 1],
+		_0: rawError.message
+	};
+}
+
+
+// OPTIONS
+
+function fromOptions(options)
+{
+	return {
+		enableHighAccuracy: options.enableHighAccuracy,
+		timeout: options.timeout._0 || Infinity,
+		maximumAge: options.maximumAge._0 || 0
+	};
+}
+
+
+// GET LOCATION
+
+function now(options)
+{
+	return _elm_lang$core$Native_Scheduler.nativeBinding(function(callback)
+	{
+		function onSuccess(rawPosition)
+		{
+			callback(_elm_lang$core$Native_Scheduler.succeed(toLocation(rawPosition)));
+		}
+
+		function onError(rawError)
+		{
+			callback(_elm_lang$core$Native_Scheduler.fail(toError(rawError)));
+		}
+
+		navigator.geolocation.getCurrentPosition(onSuccess, onError, fromOptions(options));
+	});
+}
+
+function watch(options, toSuccessTask, toErrorTask)
+{
+	return _elm_lang$core$Native_Scheduler.nativeBinding(function(callback)
+	{
+		function onSuccess(rawPosition)
+		{
+			var location = toLocation(rawPosition);
+			var task = toSuccessTask(location);
+			_elm_lang$core$Native_Scheduler.rawSpawn(task);
+		}
+
+		function onError(rawError)
+		{
+			var error = toError(rawError);
+			var task = toErrorTask(error);
+			_elm_lang$core$Native_Scheduler.rawSpawn(task);
+		}
+
+		var id = navigator.geolocation.watchPosition(onSuccess, onError, fromOptions(options));
+
+		return function() {
+			navigator.geolocation.clearWatch(id);
+		};
+	});
+}
+
+return {
+	now: now,
+	watch: F3(watch)
+};
+
+}();
+
+var _elm_lang$geolocation$Geolocation$onSelfMsg = F3(
+	function (router, location, state) {
+		var _p0 = state;
+		if (_p0.ctor === 'Nothing') {
+			return _elm_lang$core$Task$succeed(_elm_lang$core$Maybe$Nothing);
+		} else {
+			var send = function (_p1) {
+				var _p2 = _p1;
+				return A2(
+					_elm_lang$core$Platform$sendToApp,
+					router,
+					_p2._0(location));
+			};
+			return A2(
+				_elm_lang$core$Task$andThen,
+				function (_p3) {
+					return _elm_lang$core$Task$succeed(state);
+				},
+				_elm_lang$core$Task$sequence(
+					A2(_elm_lang$core$List$map, send, _p0._0.subs)));
+		}
+	});
+var _elm_lang$geolocation$Geolocation$init = _elm_lang$core$Task$succeed(_elm_lang$core$Maybe$Nothing);
+var _elm_lang$geolocation$Geolocation$defaultOptions = {enableHighAccuracy: false, timeout: _elm_lang$core$Maybe$Nothing, maximumAge: _elm_lang$core$Maybe$Nothing};
+var _elm_lang$geolocation$Geolocation$watchWith = _elm_lang$geolocation$Native_Geolocation.watch;
+var _elm_lang$geolocation$Geolocation$watch = _elm_lang$geolocation$Geolocation$watchWith(_elm_lang$geolocation$Geolocation$defaultOptions);
+var _elm_lang$geolocation$Geolocation$onEffects = F3(
+	function (router, subs, state) {
+		var _p4 = state;
+		if (_p4.ctor === 'Nothing') {
+			var _p5 = subs;
+			if (_p5.ctor === '[]') {
+				return _elm_lang$core$Task$succeed(state);
+			} else {
+				return A2(
+					_elm_lang$core$Task$andThen,
+					function (watcher) {
+						return _elm_lang$core$Task$succeed(
+							_elm_lang$core$Maybe$Just(
+								{subs: subs, watcher: watcher}));
+					},
+					_elm_lang$core$Process$spawn(
+						A2(
+							_elm_lang$geolocation$Geolocation$watch,
+							_elm_lang$core$Platform$sendToSelf(router),
+							function (_p6) {
+								return _elm_lang$core$Task$succeed(
+									{ctor: '_Tuple0'});
+							})));
+			}
+		} else {
+			var _p9 = _p4._0.watcher;
+			var _p7 = subs;
+			if (_p7.ctor === '[]') {
+				return A2(
+					_elm_lang$core$Task$andThen,
+					function (_p8) {
+						return _elm_lang$core$Task$succeed(_elm_lang$core$Maybe$Nothing);
+					},
+					_elm_lang$core$Process$kill(_p9));
+			} else {
+				return _elm_lang$core$Task$succeed(
+					_elm_lang$core$Maybe$Just(
+						{subs: subs, watcher: _p9}));
+			}
+		}
+	});
+var _elm_lang$geolocation$Geolocation$nowWith = _elm_lang$geolocation$Native_Geolocation.now;
+var _elm_lang$geolocation$Geolocation$now = _elm_lang$geolocation$Geolocation$nowWith(_elm_lang$geolocation$Geolocation$defaultOptions);
+var _elm_lang$geolocation$Geolocation$subscription = _elm_lang$core$Native_Platform.leaf('Geolocation');
+var _elm_lang$geolocation$Geolocation$Location = F6(
+	function (a, b, c, d, e, f) {
+		return {latitude: a, longitude: b, accuracy: c, altitude: d, movement: e, timestamp: f};
+	});
+var _elm_lang$geolocation$Geolocation$Altitude = F2(
+	function (a, b) {
+		return {value: a, accuracy: b};
+	});
+var _elm_lang$geolocation$Geolocation$Options = F3(
+	function (a, b, c) {
+		return {enableHighAccuracy: a, timeout: b, maximumAge: c};
+	});
+var _elm_lang$geolocation$Geolocation$Moving = function (a) {
+	return {ctor: 'Moving', _0: a};
+};
+var _elm_lang$geolocation$Geolocation$Static = {ctor: 'Static'};
+var _elm_lang$geolocation$Geolocation$Timeout = function (a) {
+	return {ctor: 'Timeout', _0: a};
+};
+var _elm_lang$geolocation$Geolocation$LocationUnavailable = function (a) {
+	return {ctor: 'LocationUnavailable', _0: a};
+};
+var _elm_lang$geolocation$Geolocation$PermissionDenied = function (a) {
+	return {ctor: 'PermissionDenied', _0: a};
+};
+var _elm_lang$geolocation$Geolocation$Tagger = function (a) {
+	return {ctor: 'Tagger', _0: a};
+};
+var _elm_lang$geolocation$Geolocation$subMap = F2(
+	function (func, _p10) {
+		var _p11 = _p10;
+		return _elm_lang$geolocation$Geolocation$Tagger(
+			function (_p12) {
+				return func(
+					_p11._0(_p12));
+			});
+	});
+var _elm_lang$geolocation$Geolocation$changes = function (tagger) {
+	return _elm_lang$geolocation$Geolocation$subscription(
+		_elm_lang$geolocation$Geolocation$Tagger(tagger));
+};
+_elm_lang$core$Native_Platform.effectManagers['Geolocation'] = {pkg: 'elm-lang/geolocation', init: _elm_lang$geolocation$Geolocation$init, onEffects: _elm_lang$geolocation$Geolocation$onEffects, onSelfMsg: _elm_lang$geolocation$Geolocation$onSelfMsg, tag: 'sub', subMap: _elm_lang$geolocation$Geolocation$subMap};
+
 var _elm_lang$virtual_dom$VirtualDom_Debug$wrap;
 var _elm_lang$virtual_dom$VirtualDom_Debug$wrapWithFlags;
 
@@ -9437,15 +9672,6 @@ var _user$project$NearbyHousePrices$view = function (model) {
 			}
 		});
 };
-var _user$project$NearbyHousePrices$update = F2(
-	function (msg, model) {
-		var _p0 = msg;
-		if (_p0._0.ctor === 'Ok') {
-			return {ctor: '_Tuple2', _0: _p0._0._0, _1: _elm_lang$core$Platform_Cmd$none};
-		} else {
-			return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
-		}
-	});
 var _user$project$NearbyHousePrices$Model = F7(
 	function (a, b, c, d, e, f, g) {
 		return {areaName: a, averagePrice: b, numberOfTransactions: c, detachedAverage: d, flatAverage: e, semiDetachedAverage: f, terracedAverage: g};
@@ -9535,21 +9761,50 @@ var _user$project$NearbyHousePrices$decodePricesData = A9(
 				_1: {ctor: '[]'}
 			},
 			_elm_lang$core$Json_Decode$int)));
-var _user$project$NearbyHousePrices$ReceivedPrices = function (a) {
-	return {ctor: 'ReceivedPrices', _0: a};
+var _user$project$NearbyHousePrices$LocationUpdated = function (a) {
+	return {ctor: 'LocationUpdated', _0: a};
 };
-var _user$project$NearbyHousePrices$getPrices = function (outcode) {
-	var url = A2(_elm_lang$core$Basics_ops['++'], 'https://mdowds.com/nearbyhouseprices/api/prices/outcode/', outcode);
-	var request = A2(_elm_lang$http$Http$get, url, _user$project$NearbyHousePrices$decodePricesData);
-	return A2(_elm_lang$http$Http$send, _user$project$NearbyHousePrices$ReceivedPrices, request);
-};
+var _user$project$NearbyHousePrices$getLocation = A2(_elm_lang$core$Task$attempt, _user$project$NearbyHousePrices$LocationUpdated, _elm_lang$geolocation$Geolocation$now);
 var _user$project$NearbyHousePrices$init = function (outcode) {
-	return {
-		ctor: '_Tuple2',
-		_0: _user$project$NearbyHousePrices$loadingModel,
-		_1: _user$project$NearbyHousePrices$getPrices(outcode)
-	};
+	return {ctor: '_Tuple2', _0: _user$project$NearbyHousePrices$loadingModel, _1: _user$project$NearbyHousePrices$getLocation};
 };
+var _user$project$NearbyHousePrices$PricesReceived = function (a) {
+	return {ctor: 'PricesReceived', _0: a};
+};
+var _user$project$NearbyHousePrices$getPrices = function (location) {
+	var $long = _elm_lang$core$Basics$toString(location.longitude);
+	var lat = _elm_lang$core$Basics$toString(location.latitude);
+	var url = A2(
+		_elm_lang$core$Basics_ops['++'],
+		'https://mdowds.com/nearbyhouseprices/api/prices/position?lat=',
+		A2(
+			_elm_lang$core$Basics_ops['++'],
+			lat,
+			A2(_elm_lang$core$Basics_ops['++'], '&long=', $long)));
+	var request = A2(_elm_lang$http$Http$get, url, _user$project$NearbyHousePrices$decodePricesData);
+	return A2(_elm_lang$http$Http$send, _user$project$NearbyHousePrices$PricesReceived, request);
+};
+var _user$project$NearbyHousePrices$update = F2(
+	function (msg, model) {
+		var _p0 = msg;
+		if (_p0.ctor === 'PricesReceived') {
+			if (_p0._0.ctor === 'Ok') {
+				return {ctor: '_Tuple2', _0: _p0._0._0, _1: _elm_lang$core$Platform_Cmd$none};
+			} else {
+				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+			}
+		} else {
+			if (_p0._0.ctor === 'Ok') {
+				return {
+					ctor: '_Tuple2',
+					_0: model,
+					_1: _user$project$NearbyHousePrices$getPrices(_p0._0._0)
+				};
+			} else {
+				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+			}
+		}
+	});
 var _user$project$NearbyHousePrices$main = _elm_lang$html$Html$program(
 	{
 		init: _user$project$NearbyHousePrices$init('E1'),

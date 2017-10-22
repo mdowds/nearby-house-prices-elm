@@ -21,4 +21,4 @@ parseToCurrency int =
 
 parseTitle : String -> String -> String
 parseTitle areaName outcode =
-    areaName ++ " (" ++ outcode ++ ")"
+    outcode ++ " (" ++ areaName ++ ")"
