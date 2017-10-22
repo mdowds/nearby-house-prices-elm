@@ -12,7 +12,7 @@ import Task
 
 main =
     Html.program
-        { init = init "E1"
+        { init = init
         , view = view
         , update = update
         , subscriptions = subscriptions
@@ -39,7 +39,7 @@ loadingModel =
     Model "Waiting for location..." "Loading" "Loading" "Loading" "Loading" "Loading" "Loading"
 
 
-init outcode =
+init =
     ( loadingModel, getLocation )
 
 
@@ -48,15 +48,15 @@ init outcode =
 
 
 type Msg
-    = PricesReceived (Result Http.Error Model)
+    = PricesReceived (Result Http.Error ReceievedData)
     | LocationUpdated (Result Geolocation.Error Geolocation.Location)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        PricesReceived (Ok newModel) ->
-            ( newModel, Cmd.none )
+        PricesReceived (Ok receivedData) ->
+            ( (parseToModel receivedData), Cmd.none )
 
         PricesReceived (Err _) ->
             ( model, Cmd.none )
@@ -103,10 +103,22 @@ getPrices location =
         Http.send PricesReceived request
 
 
-decodePricesData : Decode.Decoder Model
+type alias ReceievedData =
+    { areaName : String
+    , outcode : String
+    , averagePrice : Int
+    , numberOfTransactions : Int
+    , detachedAverage : Maybe Int
+    , flatAverage : Maybe Int
+    , semiDetachedAverage : Maybe Int
+    , terracedAverage : Maybe Int
+    }
+
+
+decodePricesData : Decode.Decoder ReceievedData
 decodePricesData =
     Decode.map8
-        parseToModel
+        ReceievedData
         (Decode.at [ "areaName" ] Decode.string)
         (Decode.at [ "outcode" ] Decode.string)
         (Decode.at [ "averagePrice" ] Decode.int)
@@ -121,20 +133,20 @@ decodePricesData =
 -- PARSERS
 
 
-parseToModel : String -> String -> Int -> Int -> Maybe Int -> Maybe Int -> Maybe Int -> Maybe Int -> Model
-parseToModel areaName outcode averagePrice numberOfTransactions detachedAverage semiDetachedAverage flatAverage terracedAverage =
+parseToModel : ReceievedData -> Model
+parseToModel receivedData =
     let
         noDataLabel =
             "No data"
     in
         Model
-            (parseTitle areaName outcode)
-            (parseToCurrency averagePrice)
-            (toString numberOfTransactions)
-            (parseOptionalInt parseToCurrency detachedAverage noDataLabel)
-            (parseOptionalInt parseToCurrency semiDetachedAverage noDataLabel)
-            (parseOptionalInt parseToCurrency flatAverage noDataLabel)
-            (parseOptionalInt parseToCurrency terracedAverage noDataLabel)
+            (parseTitle receivedData.areaName receivedData.outcode)
+            (parseToCurrency receivedData.averagePrice)
+            (toString receivedData.numberOfTransactions)
+            (parseOptionalInt parseToCurrency receivedData.detachedAverage noDataLabel)
+            (parseOptionalInt parseToCurrency receivedData.semiDetachedAverage noDataLabel)
+            (parseOptionalInt parseToCurrency receivedData.flatAverage noDataLabel)
+            (parseOptionalInt parseToCurrency receivedData.terracedAverage noDataLabel)
 
 
 
